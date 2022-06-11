@@ -219,7 +219,6 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def model_info(model, verbose=False, img_size=640):
-    stride = None
     # Model information. img_size may be int or list, i.e. img_size=640 or img_size=[640, 320]
     n_p = sum(x.numel() for x in model.parameters())  # number parameters
     n_g = sum(x.numel() for x in model.parameters() if x.requires_grad)  # number gradients
@@ -243,7 +242,7 @@ def model_info(model, verbose=False, img_size=640):
         img_size = img_size if isinstance(img_size, list) else [img_size, img_size]  # expand if int/float
 
     LOGGER.info(f"Model Summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
-    return flops * img_size[0] / stride * img_size[1] / stride
+    #return flops * img_size[0] / stride * img_size[1] / stride
 
 
 def load_classifier(name='resnet101', n=2):
