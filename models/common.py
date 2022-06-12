@@ -83,7 +83,7 @@ class stem(nn.Module):
         self.bn = nn.BatchNorm2d(num_features=c2)
         if act == 'ReLU6':
             self.act = nn.ReLU6(inplace=True)
-    
+
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
 
@@ -217,9 +217,9 @@ class MobileNetV3_InvertedResidual(nn.Module):
 
 #-------------------------------------------------------------------------
 # ShuffleNetV2
-class Conv_maxpool(nn.Module):  
-    def __init__(self, c1, c2):  # ch_in, ch_out  
-        super().__init__()  
+class Conv_maxpool(nn.Module):
+    def __init__(self, c1, c2):  # ch_in, ch_out
+        super().__init__()
         self.conv= nn.Sequential(
             nn.Conv2d(c1, c2, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(c2),
@@ -227,7 +227,7 @@ class Conv_maxpool(nn.Module):
         )
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
-    def forward(self, x):  
+    def forward(self, x):
         return self.maxpool(self.conv(x))
 
 class ShuffleNetV2_InvertedResidual(nn.Module):
@@ -301,11 +301,11 @@ class ChannelAttention(nn.Module):
 class SpatialAttention(nn.Module):
     def __init__(self, kernel_size=7):
         super(SpatialAttention,self).__init__()
-        self.conv1= nn.Conv2d(2, 1, kernel_size, padding=3, bias=False)  # kernel size = 7 Padding is 3: (n - 7 + 1) + 2P = n 
+        self.conv1= nn.Conv2d(2, 1, kernel_size, padding=3, bias=False)  # kernel size = 7 Padding is 3: (n - 7 + 1) + 2P = n
         self.sigmoid= nn.Sigmoid()
 
     def forward(self,x):
-        avg_out = torch.mean(x, dim=1, keepdim=True) 
+        avg_out = torch.mean(x, dim=1, keepdim=True)
         max_out, _ = torch.max(x, dim=1, keepdim=True)
         x = torch.cat([avg_out, max_out], dim=1)
         x = self.conv1(x)
@@ -373,7 +373,7 @@ class TransformerLayer(nn.Module):
         self.k = nn.Linear(c, c, bias=False)
         self.v = nn.Linear(c, c, bias=False)
         self.ma = nn.MultiheadAttention(embed_dim=c, num_heads=num_heads)
-        
+
         self.layernorm2 = nn.LayerNorm(c)
         self.fc1 = nn.Linear(c, 4*c, bias=False)
         self.fc2 = nn.Linear(4*c, c, bias=False)
@@ -465,7 +465,7 @@ class BottleneckCSP(nn.Module):
 
 class C3(nn.Module):
     # CSP Bottleneck with 3 convolutions
-    def __init__(self, c1, c2, c2o, n=1, shortcut=True, g=1, e=[0.5,0.5], rate=[1.0 for _ in range(12)]):  # ch_in, ch_out, number, shortcut, groups, expansion 
+    def __init__(self, c1, c2, c2o, n=1, shortcut=True, g=1, e=[0.5,0.5], rate=[1.0 for _ in range(12)]):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
         # c_ = int(c2 * e)  # hidden channels
         if isinstance(e,list):
@@ -525,7 +525,8 @@ class SPP(nn.Module):
         # c_ = c1 // 2  # hidden channels
         c_ = int(c1*e)
         self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * (len(k) + 1), c2, 1, 1)
+        #self.cv2 = Conv(c_ * (len(k) + 1), c2, 1, 1)
+        self.cv2 = Conv(c_ * 4, c2, 1, 1)
         self.m = nn.ModuleList([nn.MaxPool2d(kernel_size=x, stride=1, padding=x // 2) for x in k])
 
     def forward(self, x):
@@ -590,7 +591,7 @@ class GhostBottleneck(nn.Module):
                                   Conv(c_, c_, 3, s=2, p=1, g=c_, act=False) if s == 2 else nn.Identity(),  # dw
                                   # Squeeze-and-Excite
                                   SeBlock(c_) if use_se else nn.Sequential(),
-                                  GhostConv(c_, c2, 1, 1, act=False))   # Squeeze pw-linear           
+                                  GhostConv(c_, c2, 1, 1, act=False))   # Squeeze pw-linear
 
         self.shortcut = nn.Identity() if (c1 == c2 and s == 1) else \
                                                 nn.Sequential(Conv(c1, c1, 3, s=s, p=1, g=c1, act=False), \
